@@ -1,8 +1,13 @@
 package rest;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 import dto.*;
+import entities.Race;
 import entities.User;
+import entities.PlayerChar;
+import facades.DndFacade;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -14,10 +19,12 @@ import javax.annotation.security.RolesAllowed;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.TypedQuery;
+import javax.ws.rs.Consumes;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Produces;
 import javax.ws.rs.GET;
+import javax.ws.rs.POST;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
@@ -33,6 +40,9 @@ public class DemoResource {
 
     Gson GSON = new Gson();
     private static final EntityManagerFactory EMF = EMF_Creator.createEntityManagerFactory();
+
+    private static final DndFacade FACADE = DndFacade.getFacadeExample(EMF);
+
     @Context
     private UriInfo context;
 
@@ -81,6 +91,39 @@ public class DemoResource {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Path("classes")
+    public Response fetchClasses() throws InterruptedException, ExecutionException, IOException {
+        String URL = "https://www.dnd5eapi.co/api/classes";
+        String data = HttpUtils.fetchData(URL);
+
+        ClassesDTO cDTO = GSON.fromJson(data, ClassesDTO.class);
+
+        return Response.ok().entity(GSON.toJson(cDTO)).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    @Path("races")
+    public Response getRaces() {
+
+        List<Race> liste = FACADE.getRaces();
+
+        return Response.ok().entity(GSON.toJson(liste)).build();
+    }
+
+    @POST
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response createPerson(String playerChar) throws Exception {
+
+        PlayerChar charToCreate = GSON.fromJson(playerChar, PlayerChar.class);
+        FACADE.saveChar(charToCreate);
+        
+        return Response.ok().entity(GSON.toJson("AllOkay")).build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
     @Path("fetch")
     public Response fetchFromServer() throws InterruptedException, ExecutionException {
         ArrayList<String> URLS = new ArrayList();
@@ -101,14 +144,14 @@ public class DemoResource {
         FullDTO dto = new FullDTO();
         for (Future<GenericDTO> future : futures) {
             if (future.get() instanceof ChuckDTO) {
-                dto.setChuckDTO((ChuckDTO) future.get()); 
+                dto.setChuckDTO((ChuckDTO) future.get());
             } else if (future.get() instanceof DadDTO) {
-                dto.setDadDTO((DadDTO) future.get()); 
+                dto.setDadDTO((DadDTO) future.get());
             } else if (future.get() instanceof XkcdDTO) {
-                dto.setXkcdDTO((XkcdDTO) future.get()); 
+                dto.setXkcdDTO((XkcdDTO) future.get());
             } else if (future.get() instanceof DogDTO) {
-                dto.setDogDTO((DogDTO) future.get()); 
-            }else if (future.get() instanceof IpDTO) {
+                dto.setDogDTO((DogDTO) future.get());
+            } else if (future.get() instanceof IpDTO) {
                 dto.setIpDTO((IpDTO) future.get());
             }
         }
