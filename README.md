@@ -16,6 +16,8 @@ https://travis-ci.com/account/repositories --> Mange repositories on github
 
 <p>Create database on digitalOcean to match your local setup</p>
 
-<p>Rename the value in the <remote.server> tag to [Your server ip]/manager/text on line 19 </p>
+<p>Rename the value in the <remote.server> tag to [Your server ip]/manager/text on line 19 in pom.xml</p>
 
 <p>Change the value on line 24 in persistence.xml to match the local database on your machine</p>
+
+<p>The context path can be changed by right clicking on the project. Project properties --> build --> run --> context path </p>
